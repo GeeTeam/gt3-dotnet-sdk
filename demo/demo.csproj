@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="getcaptcha.aspx" />
+    <Content Include="gt.js" />
     <Content Include="index.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
