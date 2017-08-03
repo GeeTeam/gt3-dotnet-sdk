@@ -87,6 +87,7 @@ namespace GeetestSDK
             this.captchaID = publicKey;
             _logger = loggerFactory.CreateLogger<GeetestLib>();
         }
+
         private int getRandomNum()
         {
             Random rand = new Random();
@@ -125,10 +126,12 @@ namespace GeetestSDK
             return 0;
 
         }
+
         public String getResponseStr()
         {
             return this.responseStr;
         }
+
         /// <summary>
         /// 预处理失败后的返回格式串
         /// </summary>
@@ -143,6 +146,7 @@ namespace GeetestSDK
                  "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\",\"new_captcha\":{3}", 0,
                 this.captchaID, challenge, "true") + "}";
         }
+
         /// <summary>
         /// 预处理成功后的标准串
         /// </summary>
@@ -155,6 +159,7 @@ namespace GeetestSDK
             //                 "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\"", 1,
             //               this.captchaID, challenge) + "}";
         }
+
         /// <summary>
         /// failback模式的验证方式
         /// </summary>
@@ -168,6 +173,7 @@ namespace GeetestSDK
             int validateResult = this._failback_check_result(challenge, validate);
             return validateResult;
         }
+
         private Boolean requestIsLegal(String challenge, String validate, String seccode)
         {
             if (challenge.Equals(string.Empty) || validate.Equals(string.Empty) || seccode.Equals(string.Empty)) return false;
@@ -203,6 +209,7 @@ namespace GeetestSDK
             }
             return GeetestLib.failResult;
         }
+
         public int enhencedValidateRequest(String challenge, String validate, String seccode, String userID)
         {
             if (!this.requestIsLegal(challenge, validate, seccode)) return GeetestLib.failResult;
@@ -286,6 +293,7 @@ namespace GeetestSDK
             return retString;
 
         }
+
         private String md5Encode(String plainText)
         {
             MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
