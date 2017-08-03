@@ -9,6 +9,7 @@ using System.IO;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace GeetestSDK
 {
@@ -81,10 +82,10 @@ namespace GeetestSDK
         /// </summary>
         /// <param name="publicKey">极验验证公钥</param>
         /// <param name="privateKey">极验验证私钥</param>
-        public GeetestLib(String publicKey, String privateKey, ILoggerFactory loggerFactory)
+        public GeetestLib(IOptions<GeetestOptions> options, ILoggerFactory loggerFactory)
         {
-            this.privateKey = privateKey;
-            this.captchaID = publicKey;
+            this.privateKey = options.Value.Key;
+            this.captchaID = options.Value.Id;
             _logger = loggerFactory.CreateLogger<GeetestLib>();
         }
 
