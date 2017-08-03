@@ -6,6 +6,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Net;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace GeetestSDK
 {
@@ -57,6 +58,8 @@ namespace GeetestSDK
         private String client_type = "web";
         private String ip_address = "";
 
+        private ILogger _logger;
+
         /// <summary>
         /// 验证成功结果字符串
         /// </summary>
@@ -75,14 +78,15 @@ namespace GeetestSDK
         /// </summary>
         /// <param name="publicKey">极验验证公钥</param>
         /// <param name="privateKey">极验验证私钥</param>
-        public GeetestLib(String publicKey, String privateKey)
+        public GeetestLib(String publicKey, String privateKey, ILoggerFactory loggerFactory)
         {
             this.privateKey = privateKey;
             this.captchaID = publicKey;
+            _logger = loggerFactory.CreateLogger<GeetestLib>();
         }
         private int getRandomNum()
         {
-            Random rand =new Random();
+            Random rand = new Random();
             int randRes = rand.Next(100);
             return randRes;
         }
@@ -91,11 +95,11 @@ namespace GeetestSDK
         /// 验证初始化预处理
         /// </summary>
         /// <returns>初始化结果</returns>
-        public Byte preProcess(string userID = "",string client_type="web",string ip_address = "")
+        public Byte preProcess(string userID = "", string client_type = "web", string ip_address = "")
         {
             if (this.captchaID == null)
             {
-                Console.WriteLine("publicKey is null!");
+                _logger.LogError("publicKey is null!");
             }
             else
             {
@@ -111,7 +115,7 @@ namespace GeetestSDK
                 else
                 {
                     this.getFailPreProcessRes();
-                    Console.WriteLine("Server regist challenge failed!");
+                    _logger.LogError("Server regist challenge failed!");
                 }
             }
 
@@ -134,7 +138,7 @@ namespace GeetestSDK
             String challenge = md5Str1 + md5Str2.Substring(0, 2);
             this.responseStr = "{" + string.Format(
                  "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\",\"new_captcha\":{3}", 0,
-                this.captchaID, challenge,"true") + "}";
+                this.captchaID, challenge, "true") + "}";
         }
         /// <summary>
         /// 预处理成功后的标准串
@@ -142,11 +146,11 @@ namespace GeetestSDK
         private void getSuccessPreProcessRes(String challenge)
         {
             challenge = this.md5Encode(challenge + this.privateKey);
-            this.responseStr ="{" + string.Format(
-              "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\",\"new_captcha\":{3}", 1, 
-              this.captchaID, challenge,"true") + "}";
- //                 "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\"", 1,
- //               this.captchaID, challenge) + "}";
+            this.responseStr = "{" + string.Format(
+              "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\",\"new_captcha\":{3}", 1,
+              this.captchaID, challenge, "true") + "}";
+            //                 "\"success\":{0},\"gt\":\"{1}\",\"challenge\":\"{2}\"", 1,
+            //               this.captchaID, challenge) + "}";
         }
         /// <summary>
         /// failback模式的验证方式
@@ -187,7 +191,7 @@ namespace GeetestSDK
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    _logger.LogError(0, e, "Failed to postValidate");
                 }
                 if (response.Equals(md5Encode(seccode)))
                 {
@@ -209,7 +213,7 @@ namespace GeetestSDK
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    _logger.LogError(0, e, "Failed to postValidate");
                 }
                 if (response.Equals(md5Encode(seccode)))
                 {
@@ -232,10 +236,10 @@ namespace GeetestSDK
                 myResponseStream.Close();
                 return retString;
             }
-           catch
-           {
-               return "";     
-           }
+            catch
+            {
+                return "";
+            }
 
         }
         private String registerChallenge()
@@ -243,11 +247,11 @@ namespace GeetestSDK
             String url = "";
             if (string.Empty.Equals(this.userID))
             {
-                url = string.Format("{0}{1}?gt={2}&client_type={3}&ip_address={4}", GeetestLib.apiUrl, GeetestLib.registerUrl, this.captchaID,this.client_type,this.ip_address);
+                url = string.Format("{0}{1}?gt={2}&client_type={3}&ip_address={4}", GeetestLib.apiUrl, GeetestLib.registerUrl, this.captchaID, this.client_type, this.ip_address);
             }
             else
             {
-                url = string.Format("{0}{1}?gt={2}&user_id={3}&client_type={4}&ip_address={5}", GeetestLib.apiUrl, GeetestLib.registerUrl, this.captchaID, this.userID,this.client_type, this.ip_address);
+                url = string.Format("{0}{1}?gt={2}&user_id={3}&client_type={4}&ip_address={5}", GeetestLib.apiUrl, GeetestLib.registerUrl, this.captchaID, this.userID, this.client_type, this.ip_address);
             }
             string retString = this.readContentFromGet(url);
             return retString;
