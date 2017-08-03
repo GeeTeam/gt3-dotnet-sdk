@@ -188,7 +188,7 @@ namespace GeetestSDK
         /// <param name="validate">拖动完成后server端返回的验证结果标识字符串</param>
         /// <param name="seccode">验证结果的校验码，如果gt-server返回的不与这个值相等则表明验证失败</param>
         /// <returns>二次验证结果</returns>
-        public int enhencedValidateRequest(String challenge, String validate, String seccode)
+        public async Task<int> enhencedValidateRequest(String challenge, String validate, String seccode)
         {
             if (!this.requestIsLegal(challenge, validate, seccode)) return GeetestLib.failResult;
             if (validate.Length > 0 && checkResultByPrivate(challenge, validate))
@@ -197,7 +197,7 @@ namespace GeetestSDK
                 String response = "";
                 try
                 {
-                    response = postValidate(query);
+                    response = await postValidate(query);
                 }
                 catch (Exception e)
                 {
@@ -211,7 +211,7 @@ namespace GeetestSDK
             return GeetestLib.failResult;
         }
 
-        public int enhencedValidateRequest(String challenge, String validate, String seccode, String userID)
+        public async Task<int> enhencedValidateRequest(String challenge, String validate, String seccode, String userID)
         {
             if (!this.requestIsLegal(challenge, validate, seccode)) return GeetestLib.failResult;
             if (validate.Length > 0 && checkResultByPrivate(challenge, validate))
@@ -220,7 +220,7 @@ namespace GeetestSDK
                 String response = "";
                 try
                 {
-                    response = postValidate(query);
+                    response = await postValidate(query);
                 }
                 catch (Exception e)
                 {
@@ -270,29 +270,11 @@ namespace GeetestSDK
             return validate.Equals(encodeStr);
         }
 
-        private String postValidate(String data)
+        private async Task<string> postValidate(String data)
         {
-            String url = string.Format("{0}{1}", GeetestLib.apiUrl, GeetestLib.validateUrl);
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.ContentLength = Encoding.UTF8.GetByteCount(data);
-            // 发送数据
-            Stream myRequestStream = request.GetRequestStream();
-            byte[] requestBytes = System.Text.Encoding.ASCII.GetBytes(data);
-            myRequestStream.Write(requestBytes, 0, requestBytes.Length);
-            myRequestStream.Close();
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            // 读取返回信息
-            Stream myResponseStream = response.GetResponseStream();
-            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
-            string retString = myStreamReader.ReadToEnd();
-            myStreamReader.Close();
-            myResponseStream.Close();
-
-            return retString;
-
+            var url = string.Format("{0}{1}", GeetestLib.apiUrl, GeetestLib.validateUrl);
+            var response = await _httpClient.PostAsync(url, new StringContent(data, Encoding.UTF8, "application/x-www-form-urlencoded"));
+            return await response.Content.ReadAsStringAsync();           
         }
 
         private String md5Encode(String plainText)
