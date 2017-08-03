@@ -7,6 +7,8 @@ using System.Security.Cryptography;
 using System.Net;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace GeetestSDK
 {
@@ -59,6 +61,7 @@ namespace GeetestSDK
         private String ip_address = "";
 
         private ILogger _logger;
+        private readonly static HttpClient _httpClient = new HttpClient { Timeout = new TimeSpan(0, 0, 20) };
 
         /// <summary>
         /// 验证成功结果字符串
@@ -95,7 +98,7 @@ namespace GeetestSDK
         /// 验证初始化预处理
         /// </summary>
         /// <returns>初始化结果</returns>
-        public Byte preProcess(string userID = "", string client_type = "web", string ip_address = "")
+        public async Task<Byte> preProcess(string userID = "", string client_type = "web", string ip_address = "")
         {
             if (this.captchaID == null)
             {
@@ -106,7 +109,7 @@ namespace GeetestSDK
                 this.userID = userID;
                 this.client_type = client_type;
                 this.ip_address = ip_address;
-                String challenge = this.registerChallenge();
+                String challenge = await registerChallenge();
                 if (challenge.Length == 32)
                 {
                     this.getSuccessPreProcessRes(challenge);
@@ -222,27 +225,23 @@ namespace GeetestSDK
             }
             return GeetestLib.failResult;
         }
-        private String readContentFromGet(String url)
+
+        private async Task<string> readContentFromGet(String url)
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Timeout = 20000;
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream myResponseStream = response.GetResponseStream();
-                StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
-                String retString = myStreamReader.ReadToEnd();
-                myStreamReader.Close();
-                myResponseStream.Close();
-                return retString;
+                var response = await _httpClient.GetAsync(url);
+                return await response.Content.ReadAsStringAsync();
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.LogError(0, ex, $"Requesting to {url}");
                 return "";
             }
 
         }
-        private String registerChallenge()
+
+        private async Task<string> registerChallenge()
         {
             String url = "";
             if (string.Empty.Equals(this.userID))
@@ -253,14 +252,16 @@ namespace GeetestSDK
             {
                 url = string.Format("{0}{1}?gt={2}&user_id={3}&client_type={4}&ip_address={5}", GeetestLib.apiUrl, GeetestLib.registerUrl, this.captchaID, this.userID, this.client_type, this.ip_address);
             }
-            string retString = this.readContentFromGet(url);
+            string retString = await readContentFromGet(url);
             return retString;
         }
+
         private Boolean checkResultByPrivate(String origin, String validate)
         {
             String encodeStr = md5Encode(privateKey + "geetest" + origin);
             return validate.Equals(encodeStr);
         }
+
         private String postValidate(String data)
         {
             String url = string.Format("{0}{1}", GeetestLib.apiUrl, GeetestLib.validateUrl);
@@ -293,6 +294,7 @@ namespace GeetestSDK
             t2 = t2.ToLower();
             return t2;
         }
+
         private int _failback_check_result(String challenge, String validate)
         {
             String encodeStr = this.md5Encode(challenge);
