@@ -70,15 +70,25 @@ namespace GeetestSDK
         /// </summary>
         public const String forbiddenResult = "forbidden";
 
+        private int timeout;
+
+        private IWebProxy proxy;
+
         /// <summary>
         /// GeetestLib构造函数
         /// </summary>
         /// <param name="publicKey">极验验证公钥</param>
         /// <param name="privateKey">极验验证私钥</param>
-        public GeetestLib(String publicKey, String privateKey)
+        public GeetestLib(String publicKey, String privateKey, int timeout = 20000, string proxy = null)
         {
             this.privateKey = privateKey;
             this.captchaID = publicKey;
+            this.timeout = timeout;
+
+            if (!string.IsNullOrEmpty(proxy))
+            {
+                this.proxy = new WebProxy(new Uri(proxy));
+            }
         }
         private int getRandomNum()
         {
@@ -223,7 +233,11 @@ namespace GeetestSDK
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Timeout = 20000;
+                request.Timeout = timeout;
+                if (proxy != null)
+                {
+                    request.Proxy = proxy;
+                }
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 Stream myResponseStream = response.GetResponseStream();
                 StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
@@ -261,6 +275,11 @@ namespace GeetestSDK
         {
             String url = string.Format("{0}{1}", GeetestLib.apiUrl, GeetestLib.validateUrl);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Timeout = timeout;
+            if (proxy != null)
+            {
+                request.Proxy = proxy;
+            }
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = Encoding.UTF8.GetByteCount(data);
