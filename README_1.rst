@@ -1,7 +1,7 @@
 Gt C# SDK
 =========
 
-极验验证　C#　SDK,支持.Net Framework3.5及以上版本．本项目提供的Demo的前端实现方法均是面向PC端的。 本项目是面向服务器端的，具体使用可以参考我们的 `文档 <http://www.geetest.com/install/sections/idx-server-sdk.html>`_ ,客户端相关开发请参考我们的 `前端文档 <http://www.geetest.com/install/>`_.
+极验验证 C# SDK,支持.Net Framework3.5及以上版本．本项目提供的Demo的前端实现方法均是面向PC端的。 本项目是面向服务器端的，具体使用可以参考我们的 `文档 <http://www.geetest.com/install/sections/idx-server-sdk.html>`_ ,客户端相关开发请参考我们的 `前端文档 <http://www.geetest.com/install/>`_.
 
 开发环境
 ________
